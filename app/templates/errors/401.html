@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}401 Unauthorized — QA Portal PIA{% endblock %}
+{% block content %}
+<div class="error-shell">
+  <div class="col-11 col-md-6 mx-auto">
+    <i class="bi bi-shield-lock-fill text-warning" style="font-size: 2.5rem;"></i>
+    <div class="error-code">401</div>
+    <h4 class="mb-3">Authentication Required</h4>
+    <p class="text-muted">Please log in to access this page.</p>
+    <a class="btn btn-primary mt-2" href="{{ url_for('auth.login') }}"><i class="bi bi-box-arrow-in-right me-1"></i>Go to Login</a>
+  </div>
+</div>
+{% endblock %}

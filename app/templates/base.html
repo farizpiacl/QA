@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}QA Portal PIA{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+{% set role_labels = {
+  'SUPER_ADMIN': 'Super Admin',
+  'CE_QA': 'Shift Incharge',
+  'DCE_QA': 'DCE',
+  'AIRCRAFT_ENGINEER': 'Engineer'
+} %}
+{% set role_icons = {
+  'SUPER_ADMIN': 'bi-shield-lock',
+  'CE_QA': 'bi-person-badge',
+  'DCE_QA': 'bi-person-workspace',
+  'AIRCRAFT_ENGINEER': 'bi-tools'
+} %}
+{% set home_endpoint = 'admin.dashboard' if (current_user.is_authenticated and current_user.is_super_admin) else 'main.dashboard' %}
+<body class="{{ 'has-shell' if current_user.is_authenticated else '' }}">
+  {% if current_user.is_authenticated %}
+  <button class="icon-btn sidebar-burger" type="button" id="sidebarBurger" aria-label="Open navigation">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <aside class="sidebar" id="appSidebar">
+    <a class="sidebar-brand" href="{{ url_for(home_endpoint) }}">
+      <span class="brand-icon"><img src="{{ url_for('static', filename='img/pia_logo.png') }}" alt="PIA"></span>
+      <span class="brand-text">
+        <span class="brand-title">QA PORTAL</span>
+        <small>PIA Engineering</small>
+      </span>
+      <button class="icon-btn sidebar-desktop-toggle" type="button" id="sidebarDesktopToggle" aria-label="Collapse navigation">
+        <i class="bi bi-chevron-double-left"></i>
+      </button>
+    </a>
+
+    <nav class="sidebar-nav">
+      {% block sidebar_nav %}{% endblock %}
+    </nav>
+
+    <div class="sidebar-footer">
+      Developed by Intern Muhammad Fariz<br>PIA Engineering &amp; Maintenance — 2026
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <header class="topbar">
+    <button class="topbar-bell" type="button" aria-label="Notifications">
+      <i class="bi bi-bell"></i>
+    </button>
+    <div class="dropdown topbar-user-dropdown">
+      <button class="topbar-user-btn dropdown-toggle" type="button" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="avatar-circle">{{ current_user.full_name[:1]|upper }}</span>
+        <span class="user-meta">
+          <span class="user-name">{{ current_user.full_name }}</span>
+          <span class="user-role">{{ role_labels.get(current_user.role, current_user.role.replace('_', ' ').title()) }}</span>
+        </span>
+      </button>
+      <ul class="dropdown-menu user-dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn">
+        <li>
+          <div class="dropdown-header-card">
+            <div class="dh-name">{{ current_user.full_name }}</div>
+            <span class="dh-role">{{ role_labels.get(current_user.role, current_user.role.replace('_', ' ').title()) }}</span>
+          </div>
+        </li>
+        <li><a class="dropdown-item" href="{{ url_for('main.profile') }}"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+      </ul>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="main-content {{ '' if current_user.is_authenticated else 'no-shell' }}" id="mainContent">
+    <div class="content-inner">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show d-flex align-items-center" role="alert">
+              <i class="bi {{ 'bi-check-circle-fill' if category == 'success' else 'bi-exclamation-triangle-fill' if category in ['danger', 'warning'] else 'bi-info-circle-fill' }} me-2"></i>
+              <div class="flex-grow-1">{{ message }}</div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

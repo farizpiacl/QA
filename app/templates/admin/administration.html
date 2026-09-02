@@ -1,0 +1,52 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'administration' %}
+{% block title %}Administration — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<h2 class="mb-1">Administration</h2>
+<p class="text-muted">Users, Stations, Shifts, Airlines, Aircraft and Audit Logs in one place.</p>
+
+<div class="row g-3">
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.users_list') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-people"></i></span></div>
+      <div class="fw-semibold">Users</div>
+      <div class="small text-muted">Manage accounts &amp; roles</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.stations_list') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-geo-alt"></i></span></div>
+      <div class="fw-semibold">Stations</div>
+      <div class="small text-muted">Manage stations</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.shifts_list') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-clock"></i></span></div>
+      <div class="fw-semibold">Shifts</div>
+      <div class="small text-muted">Manage shifts</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.airlines_list') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-building"></i></span></div>
+      <div class="fw-semibold">Airlines</div>
+      <div class="small text-muted">Manage airlines</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.aircraft_list') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-airplane"></i></span></div>
+      <div class="fw-semibold">Aircraft</div>
+      <div class="small text-muted">Manage aircraft</div>
+    </a>
+  </div>
+  <div class="col-6 col-md-4 col-xl-3">
+    <a href="{{ url_for('admin.audit_logs') }}" class="card activity-type-card p-3 h-100 text-center text-decoration-none">
+      <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi bi-journal-text"></i></span></div>
+      <div class="fw-semibold">Audit Logs</div>
+      <div class="small text-muted">View the audit trail</div>
+    </a>
+  </div>
+</div>
+{% endblock %}

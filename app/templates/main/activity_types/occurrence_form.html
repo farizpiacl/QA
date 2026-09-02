@@ -1,0 +1,54 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} Occurrence Reporting — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} Occurrence Reporting</h2>
+<p class="text-muted">Activity Type 4 — Occurrence Reporting.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="report_type">Occurrence Report Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.report_type }}" id="report_type" name="report_type" required>
+          <option value="" disabled {{ 'selected' if not form_values.report_type }}>Select type…</option>
+          {% for code, label in report_type_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.report_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.report_type %}<div class="invalid-feedback">{{ errors.report_type }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="category">Occurrence <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.category }}" id="category" name="category" required>
+          <option value="" disabled {{ 'selected' if not form_values.category }}>Select occurrence…</option>
+          {% for code, label in category_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.category == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.category %}<div class="invalid-feedback">{{ errors.category }}</div>{% endif %}
+      </div>
+
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

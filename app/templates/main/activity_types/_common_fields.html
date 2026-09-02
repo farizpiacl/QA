@@ -1,0 +1,78 @@
+{% macro common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <label class="form-label" for="activity_date">Date <span class="text-danger">*</span></label>
+    <input type="date" class="form-control {{ 'is-invalid' if errors.activity_date }}" id="activity_date"
+           name="activity_date" value="{{ form_values.activity_date }}" required>
+    {% if errors.activity_date %}<div class="invalid-feedback">{{ errors.activity_date }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label" for="shift_id">Shift <span class="text-danger">*</span></label>
+    <select class="form-select {{ 'is-invalid' if errors.shift_id }}" id="shift_id" name="shift_id" required>
+      <option value="" disabled {{ 'selected' if not form_values.shift_id }}>Select shift…</option>
+      {% for shift in shifts %}
+      <option value="{{ shift.id }}" {{ 'selected' if form_values.shift_id|string == shift.id|string }}>
+        {{ shift.name }}{% if shift.start_time and shift.end_time %} ({{ shift.start_time.strftime('%H:%M') }}–{{ shift.end_time.strftime('%H:%M') }}){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    {% if errors.shift_id %}<div class="invalid-feedback">{{ errors.shift_id }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label" for="station_id">Station <span class="text-danger">*</span></label>
+    {% if station_locked %}
+      {% set locked_station = stations[0] if stations else None %}
+      <input type="text" class="form-control" value="{{ locked_station.code + ' — ' + locked_station.name if locked_station else 'No station assigned' }}" disabled readonly>
+      <input type="hidden" name="station_id" value="{{ locked_station.id if locked_station else '' }}">
+    {% else %}
+      <select class="form-select {{ 'is-invalid' if errors.station_id }}" id="station_id" name="station_id" required>
+        <option value="" disabled {{ 'selected' if not form_values.station_id }}>Select station…</option>
+        {% for station in stations %}
+        <option value="{{ station.id }}" {{ 'selected' if form_values.station_id|string == station.id|string }}>
+          {{ station.code }} — {{ station.name }}
+        </option>
+        {% endfor %}
+      </select>
+    {% endif %}
+    {% if errors.station_id %}<div class="invalid-feedback d-block">{{ errors.station_id }}</div>{% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label">Created By</label>
+    <input type="text" class="form-control" value="{{ current_user.full_name }}" disabled readonly>
+  </div>
+
+  <div class="col-md-4">
+    <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
+    <select class="form-select {{ 'is-invalid' if errors.status }}" id="status" name="status" required>
+      {% for s in statuses %}
+      <option value="{{ s }}" {{ 'selected' if form_values.status == s }}>{{ s.title() }}</option>
+      {% endfor %}
+    </select>
+    {% if errors.status %}<div class="invalid-feedback">{{ errors.status }}</div>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro remarks_field(form_values, errors) %}
+<div class="col-12">
+  <label class="form-label" for="remarks">Remarks</label>
+  <textarea class="form-control {{ 'is-invalid' if errors.remarks }}" id="remarks" name="remarks" rows="3">{{ form_values.remarks }}</textarea>
+  {% if errors.remarks %}<div class="invalid-feedback">{{ errors.remarks }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro yesno_field(name, field_id, label, checked, errors) %}
+<div class="col-md-4">
+  <label class="form-label d-block">{{ label }}</label>
+  <div class="btn-group" role="group" aria-label="{{ label }}">
+    <input type="radio" class="btn-check" name="{{ name }}" id="{{ field_id }}_yes" value="YES" autocomplete="off" {{ 'checked' if checked }}>
+    <label class="btn btn-outline-success" for="{{ field_id }}_yes">Yes</label>
+    <input type="radio" class="btn-check" name="{{ name }}" id="{{ field_id }}_no" value="NO" autocomplete="off" {{ 'checked' if not checked }}>
+    <label class="btn btn-outline-secondary" for="{{ field_id }}_no">No</label>
+  </div>
+  {% if errors[name] %}<div class="text-danger small">{{ errors[name] }}</div>{% endif %}
+</div>
+{% endmacro %}

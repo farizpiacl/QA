@@ -1,0 +1,88 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} Investigation — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} Investigation</h2>
+<p class="text-muted">Activity Type 10 — Investigation.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="investigationForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="investigation_type">Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.investigation_type }}" id="investigation_type" name="investigation_type" required>
+          <option value="" disabled {{ 'selected' if not form_values.investigation_type }}>Select…</option>
+          {% for code, label in type_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.investigation_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.investigation_type %}<div class="invalid-feedback">{{ errors.investigation_type }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4" id="morAircraftField">
+        <label class="form-label" for="mor_aircraft_type">Aircraft Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.mor_aircraft_type }}" id="mor_aircraft_type" name="mor_aircraft_type">
+          <option value="" disabled {{ 'selected' if not form_values.mor_aircraft_type }}>Select…</option>
+          {% for code, label in mor_aircraft_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.mor_aircraft_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.mor_aircraft_type %}<div class="invalid-feedback">{{ errors.mor_aircraft_type }}</div>{% endif %}
+        <div class="form-text">Only shown/required when Type is MOR.</div>
+      </div>
+
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var typeSelect = document.getElementById("investigation_type");
+  var morField = document.getElementById("morAircraftField");
+  var morSelect = document.getElementById("mor_aircraft_type");
+  var MOR_TYPE = "MOR";
+
+  function toggle(el, show) {
+    el.classList.toggle("d-none", !show);
+    el.querySelectorAll("input, select").forEach(function (i) {
+      if (show) { i.removeAttribute("disabled"); } else { i.setAttribute("disabled", "disabled"); }
+    });
+  }
+
+  function refresh() {
+    var showMor = typeSelect.value === MOR_TYPE;
+    toggle(morField, showMor);
+    if (showMor) {
+      morSelect.setAttribute("required", "required");
+    } else {
+      morSelect.removeAttribute("required");
+      morSelect.value = "";
+    }
+  }
+
+  typeSelect.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}

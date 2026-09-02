@@ -1,0 +1,9 @@
+{% extends "main/app_base.html" %}
+{% block title %}My Area — QA Portal PIA{% endblock %}
+{% block app_content %}
+<h2>My Area</h2>
+<p class="text-muted">Visible to AIRCRAFT_ENGINEER (and SUPER_ADMIN).</p>
+<div class="alert alert-info">
+  This legacy link now lives on the <a href="{{ url_for('main.dashboard') }}">Dashboard</a>, which shows your own activities plus anything Open.
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'aircraft' %}
+{% block title %}Aircraft — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Aircraft</h2>
+  <a href="{{ url_for('admin.aircraft_create') }}" class="btn btn-primary btn-sm">+ New Aircraft</a>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th>Registration</th><th>Model</th><th>Airline</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+      {% for ac in aircraft %}
+      <tr>
+        <td>{{ ac.registration }}</td>
+        <td>{{ ac.type or '—' }}</td>
+        <td>{{ ac.airline.code if ac.airline else '—' }}</td>
+        <td>
+          {% if ac.is_active %}<span class="badge bg-success">Active</span>
+          {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+        </td>
+        <td class="text-end text-nowrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.aircraft_edit', aircraft_id=ac.id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('admin.aircraft_toggle_active', aircraft_id=ac.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm {{ 'btn-outline-warning' if ac.is_active else 'btn-outline-success' }}" type="submit">
+              {{ 'Deactivate' if ac.is_active else 'Activate' }}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-muted">No aircraft yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

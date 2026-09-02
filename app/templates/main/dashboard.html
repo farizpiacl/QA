@@ -1,0 +1,117 @@
+{% extends "main/app_base.html" %}
+{% import "partials/_dashboard_macros.html" as dm %}
+{% set active_nav = 'dashboard' %}
+{% block title %}Dashboard — QA Portal PIA{% endblock %}
+{% block app_content %}
+<h2 class="mb-1">Welcome, {{ user.full_name.split(' ')[0] }}</h2>
+<p class="text-muted mb-4">
+  {{ user.role.replace('_', ' ').title() }}
+  {% if user.station %} &middot; {{ user.station.code }} — {{ user.station.name }}{% endif %}
+  {% if user.role == "CE_QA" %} &middot; Pakistan-wide{% endif %}
+</p>
+
+{% if user.role == "DCE_QA" and not user.station_id %}
+<div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-1"></i>No station is assigned to your account yet — ask a Super Admin to assign one. You can still see any Open activity below.</div>
+{% endif %}
+
+{{ dm.stat_cards(stats.totals, 'main.activities_list', size='lg') }}
+
+{% if user.role == "DCE_QA" %}
+<div class="table-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="mb-0"><i class="bi bi-funnel me-1"></i>Filter Activity Cards</h5>
+  </div>
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Date From</label>
+      <input type="date" name="date_from" value="{{ dashboard_query.get('date_from', '') }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Date To</label>
+      <input type="date" name="date_to" value="{{ dashboard_query.get('date_to', '') }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Station</label>
+      <select name="station_id" class="form-select form-select-sm">
+        <option value="">All stations</option>
+        {% for s in filter_choices.stations %}
+        <option value="{{ s.id }}" {{ 'selected' if dashboard_query.get('station_id') == s.id|string }}>{{ s.code }} — {{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Shift</label>
+      <select name="shift_id" class="form-select form-select-sm">
+        <option value="">All shifts</option>
+        {% for sh in filter_choices.shifts %}
+        <option value="{{ sh.id }}" {{ 'selected' if dashboard_query.get('shift_id') == sh.id|string }}>{{ sh.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Engineer</label>
+      <select name="created_by" class="form-select form-select-sm">
+        <option value="">Anyone</option>
+        {% for u in filter_choices.creators %}
+        <option value="{{ u.id }}" {{ 'selected' if dashboard_query.get('created_by') == u.id|string }}>{{ u.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small text-muted mb-1">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">All statuses</option>
+        <option value="OPEN" {{ 'selected' if dashboard_query.get('status') == 'OPEN' }}>Open</option>
+        <option value="CLOSED" {{ 'selected' if dashboard_query.get('status') == 'CLOSED' }}>Closed</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel me-1"></i>Apply Filters</button>
+      <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0"><i class="bi bi-grid-3x3-gap me-1"></i>Activity Types</h5>
+  <span class="text-muted small">Click a card to view that activity type's full list</span>
+</div>
+{{ dm.activity_type_cards(stats.by_type, 'main.activities_list', size='sm', extra_args=dashboard_query) }}
+{% endif %}
+
+{% if user.role == "AIRCRAFT_ENGINEER" %}
+<div class="table-card mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-clock-history me-1"></i>Recent Activities</h5>
+    <a href="{{ url_for('main.recent_activities') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Activity Type</th>
+          <th>Date / Time</th>
+          <th>Station</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for activity in recent_activities %}
+        <tr>
+          <td>{{ activity.activity_type.replace('_', ' ').title() }}</td>
+          <td class="text-nowrap">{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ activity.station.code if activity.station else '—' }}</td>
+          <td>{{ dm.status_badge(activity.status) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-muted text-center py-4">
+          <i class="bi bi-inbox display-6 d-block mb-2"></i>
+          No activities yet — use "Add Activity" to log your first one.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

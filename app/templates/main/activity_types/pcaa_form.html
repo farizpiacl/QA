@@ -1,0 +1,43 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} PCAA — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} PCAA</h2>
+<p class="text-muted">Activity Type 11 — PCAA.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="pcaaForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="option">Option <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.option }}" id="option" name="option" required>
+          <option value="" disabled {{ 'selected' if not form_values.option }}>Select…</option>
+          {% for code, label in option_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.option == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.option %}<div class="invalid-feedback">{{ errors.option }}</div>{% endif %}
+      </div>
+
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

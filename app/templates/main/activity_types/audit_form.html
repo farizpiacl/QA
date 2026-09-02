@@ -1,0 +1,120 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} Audit — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} Audit</h2>
+<p class="text-muted">Activity Type 3 — Audit.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="auditForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="audit_type">Audit Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.audit_type }}" id="audit_type" name="audit_type" required>
+          <option value="" disabled {{ 'selected' if not form_values.audit_type }}>Select audit type…</option>
+          {% for code, label in audit_type_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.audit_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.audit_type %}<div class="invalid-feedback">{{ errors.audit_type }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="section">Section/Station <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.section }}" id="section" name="section" required>
+          <option value="" disabled {{ 'selected' if not form_values.section }}>Select section/station…</option>
+          {% for code, label in section_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.section == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.section %}<div class="invalid-feedback">{{ errors.section }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1" id="externalFields">
+      <div class="col-md-4">
+        <label class="form-label" for="authority">Authority <span class="text-danger">*</span></label>
+        <input type="text" class="form-control {{ 'is-invalid' if errors.authority }}" id="authority" name="authority" value="{{ form_values.authority }}">
+        {% if errors.authority %}<div class="invalid-feedback">{{ errors.authority }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="operator">Authority Operator</label>
+        <input type="text" class="form-control {{ 'is-invalid' if errors.operator }}" id="operator" name="operator" value="{{ form_values.operator }}">
+        {% if errors.operator %}<div class="invalid-feedback">{{ errors.operator }}</div>{% endif %}
+      </div>
+    </div>
+
+    <hr class="my-4">
+    <h5 class="mb-3">Audit Stage</h5>
+
+    <div class="row g-3 mb-2 align-items-start">
+      <div class="col-md-4">
+        <label class="form-label" for="audit_stage">Audit Stage <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.audit_stage }}" id="audit_stage" name="audit_stage" required>
+          <option value="" disabled {{ 'selected' if not form_values.audit_stage }}>Select audit stage…</option>
+          {% for code, label in audit_stage_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.audit_stage == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.audit_stage %}<div class="invalid-feedback">{{ errors.audit_stage }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="stage_status">Status <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.stage_status }}" id="stage_status" name="stage_status" required>
+          {% for s in statuses %}
+          <option value="{{ s }}" {{ 'selected' if form_values.stage_status == s }}>{{ s.title() }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.stage_status %}<div class="invalid-feedback">{{ errors.stage_status }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="stage_remarks">Remarks</label>
+        <textarea class="form-control {{ 'is-invalid' if errors.stage_remarks }}" id="stage_remarks" name="stage_remarks" rows="2">{{ form_values.stage_remarks }}</textarea>
+        {% if errors.stage_remarks %}<div class="invalid-feedback">{{ errors.stage_remarks }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="row g-3 mt-2">
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var sectionSelect = document.getElementById("section");
+  var externalFields = document.getElementById("externalFields");
+
+  function refresh() {
+    var show = sectionSelect.value === "EXTERNAL";
+    externalFields.classList.toggle("d-none", !show);
+    // "Authority Operator" is never required - only "Authority" is required for External Audit.
+    var authorityEl = document.getElementById("authority");
+    if (show) { authorityEl.setAttribute("required", "required"); } else { authorityEl.removeAttribute("required"); }
+  }
+
+  sectionSelect.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'aircraft' %}
+{% block title %}{{ 'Edit Aircraft' if mode == 'edit' else 'New Aircraft' }} — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<h2>{{ 'Edit Aircraft' if mode == 'edit' else 'New Aircraft' }}</h2>
+
+<div class="table-card" style="max-width: 520px;">
+  <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">Airline</label>
+      <select class="form-select" name="airline_id">
+        <option value="">— None —</option>
+        {% for al in airlines %}
+        <option value="{{ al.id }}" {{ 'selected' if (form.airline_id|string if form.airline_id else '') == al.id|string }}>{{ al.code }} — {{ al.name }}</option>
+        {% endfor %}
+      </select>
+      <div class="form-text">Loaded live from the Airlines table.</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Registration</label>
+      <input type="text" class="form-control text-uppercase" name="registration" value="{{ form.registration or '' }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Aircraft Model</label>
+      <input type="text" class="form-control" name="type" value="{{ form.type or '' }}" placeholder="e.g. A320, B777">
+    </div>
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+             {{ 'checked' if (form.is_active if mode == 'edit' else True) }}>
+      <label class="form-check-label" for="is_active">Active</label>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" type="submit">{{ 'Save Changes' if mode == 'edit' else 'Create Aircraft' }}</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('admin.aircraft_list') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

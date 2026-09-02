@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "partials/_nav_macros.html" as nav %}
+
+{% block sidebar_nav %}
+  {{ nav.nav_link(url_for('main.dashboard'), 'bi-speedometer2', 'Dashboard', 'dashboard', active_nav) }}
+  {{ nav.nav_link(url_for('main.profile'), 'bi-person-circle', 'My Profile', 'profile', active_nav) }}
+
+  {% if current_user.role == "CE_QA" %}
+    {{ nav.nav_section('Activities') }}
+    {{ nav.nav_link(url_for('main.activities_list'), 'bi-list-check', 'All Activities', 'activities', active_nav) }}
+    {{ nav.nav_link(url_for('main.open_activities'), 'bi-folder2-open', 'Open Activities', 'open_activities', active_nav) }}
+    {{ nav.nav_link(url_for('main.reports'), 'bi-bar-chart-line', 'Reports', 'reports', active_nav) }}
+    {{ nav.nav_link(url_for('main.analytics'), 'bi-graph-up-arrow', 'Analytics', 'analytics', active_nav) }}
+  {% elif current_user.role == "DCE_QA" %}
+    {{ nav.nav_section('Activities') }}
+    {{ nav.nav_link(url_for('main.activities_list'), 'bi-list-check', 'Station Activities', 'activities', active_nav) }}
+    {{ nav.nav_link(url_for('main.open_activities'), 'bi-folder2-open', 'Open Activities', 'open_activities', active_nav) }}
+    {{ nav.nav_link(url_for('main.add_activity'), 'bi-plus-circle', 'Add Activity', 'add_activity', active_nav) }}
+    {{ nav.nav_link(url_for('main.reports'), 'bi-bar-chart-line', 'Reports', 'reports', active_nav) }}
+    {{ nav.nav_link(url_for('main.analytics'), 'bi-graph-up-arrow', 'Analytics', 'analytics', active_nav) }}
+    {% if current_user.station_id %}
+      {{ nav.nav_section('My Station') }}
+      {{ nav.nav_link(url_for('main.station_detail', station_id=current_user.station_id), 'bi-geo-alt', 'My Station', 'my_station', active_nav) }}
+    {% endif %}
+  {% elif current_user.role == "AIRCRAFT_ENGINEER" %}
+    {{ nav.nav_section('Activities') }}
+    {{ nav.nav_link(url_for('main.add_activity'), 'bi-plus-circle', 'Add Activity', 'add_activity', active_nav) }}
+    {{ nav.nav_link(url_for('main.activities_list'), 'bi-list-check', 'My Activities', 'activities', active_nav) }}
+    {{ nav.nav_link(url_for('main.reports'), 'bi-bar-chart-line', 'Reports', 'reports', active_nav) }}
+    {{ nav.nav_link(url_for('main.analytics'), 'bi-graph-up-arrow', 'Analytics', 'analytics', active_nav) }}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% block app_content %}{% endblock %}
+{% endblock %}

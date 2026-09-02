@@ -1,0 +1,7 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = section.lower() %}
+{% block title %}{{ section }} — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<h2>{{ section }}</h2>
+<div class="alert alert-info">{{ note }}</div>
+{% endblock %}

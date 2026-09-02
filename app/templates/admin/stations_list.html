@@ -1,0 +1,38 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'stations' %}
+{% block title %}Stations — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Stations</h2>
+  <a href="{{ url_for('admin.station_create') }}" class="btn btn-primary btn-sm">+ New Station</a>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th>Code</th><th>Name</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+      {% for s in stations %}
+      <tr>
+        <td>{{ s.code }}</td>
+        <td>{{ s.name }}</td>
+        <td>
+          {% if s.is_active %}<span class="badge bg-success">Active</span>
+          {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+        </td>
+        <td class="text-end text-nowrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.station_edit', station_id=s.id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('admin.station_toggle_active', station_id=s.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm {{ 'btn-outline-warning' if s.is_active else 'btn-outline-success' }}" type="submit">
+              {{ 'Deactivate' if s.is_active else 'Activate' }}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-muted">No stations yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

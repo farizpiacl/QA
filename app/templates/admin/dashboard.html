@@ -1,0 +1,54 @@
+{% extends "admin/base_admin.html" %}
+{% import "partials/_dashboard_macros.html" as dm %}
+{% set active_nav = 'dashboard' %}
+{% block title %}Admin Dashboard — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<h2 class="mb-1">Welcome, {{ current_user.full_name.split(' ')[0] }}</h2>
+<p class="text-muted mb-4">Super Admin &middot; Pakistan-wide system overview</p>
+
+<div class="row g-3 mb-4">
+  {{ dm.kpi_card(stats.active_users, 'Active Employees', 'bi-people-fill', url_for('admin.users_list')) }}
+  {{ dm.kpi_card(activity_stats.totals.today, "Today's Activities", 'bi-geo-alt-fill', url_for('admin.activities_list', when='today'), sublabel=(activity_stats.totals.total ~ ' total logged')) }}
+  {{ dm.kpi_card(stats.aircraft, 'Active Aircraft', 'bi-airplane-fill', url_for('admin.aircraft_list')) }}
+  {{ dm.kpi_card(stats.airlines, 'Third-Party Airlines', 'bi-building-fill', url_for('admin.airlines_list')) }}
+  {{ dm.kpi_card(stats.stations, 'Stations', 'bi-signpost-split-fill', url_for('admin.stations_list')) }}
+</div>
+
+<div class="section-heading">
+  <h5 class="mb-0"><i class="bi bi-bar-chart-line-fill me-1"></i>Analytics Overview</h5>
+  <a href="{{ url_for('admin.reports_placeholder') }}" class="btn-analytics-link"><i class="bi bi-arrow-up-right"></i>Full Analytics &amp; Reports</a>
+</div>
+{{ dm.stat_cards(activity_stats.totals, 'admin.activities_list', size='sm') }}
+{{ dm.activity_type_cards(activity_stats.by_type, 'admin.activities_list', size='sm') }}
+
+<div class="row g-3 mb-4 mt-1">
+  <div class="col-md-3"><a class="btn btn-primary w-100" href="{{ url_for('admin.user_create') }}">+ New User</a></div>
+  <div class="col-md-3"><a class="btn btn-outline-primary w-100" href="{{ url_for('admin.station_create') }}">+ New Station</a></div>
+  <div class="col-md-3"><a class="btn btn-outline-primary w-100" href="{{ url_for('admin.airline_create') }}">+ New Airline</a></div>
+  <div class="col-md-3"><a class="btn btn-outline-primary w-100" href="{{ url_for('admin.aircraft_create') }}">+ New Aircraft</a></div>
+</div>
+
+<div class="table-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Recent Activity</h5>
+    <a href="{{ url_for('admin.audit_logs') }}" class="small">View full audit log &rarr;</a>
+  </div>
+  <table class="table table-sm mb-0">
+    <thead>
+      <tr><th>When</th><th>Action</th><th>Entity</th><th>Details</th></tr>
+    </thead>
+    <tbody>
+      {% for log in recent_logs %}
+      <tr>
+        <td class="text-nowrap">{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+        <td>{{ log.entity_type }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</td>
+        <td class="text-muted small">{{ log.details }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-muted">No activity yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

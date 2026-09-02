@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'shifts' %}
+{% block title %}Shifts — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Shifts</h2>
+  <a href="{{ url_for('admin.shift_create') }}" class="btn btn-primary btn-sm">+ New Shift</a>
+</div>
+
+<div class="table-card">
+  <table class="table table-hover align-middle mb-0">
+    <thead><tr><th>Name</th><th>Start</th><th>End</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+    <tbody>
+      {% for s in shifts %}
+      <tr>
+        <td>{{ s.name }}</td>
+        <td>{{ s.start_time or '—' }}</td>
+        <td>{{ s.end_time or '—' }}</td>
+        <td>
+          {% if s.is_active %}<span class="badge bg-success">Active</span>
+          {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+        </td>
+        <td class="text-end text-nowrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.shift_edit', shift_id=s.id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('admin.shift_toggle_active', shift_id=s.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm {{ 'btn-outline-warning' if s.is_active else 'btn-outline-success' }}" type="submit">
+              {{ 'Deactivate' if s.is_active else 'Activate' }}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-muted">No shifts yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

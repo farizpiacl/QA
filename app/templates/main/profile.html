@@ -1,0 +1,71 @@
+{% extends "main/app_base.html" %}
+{% set active_nav = 'profile' %}
+{% block title %}My Profile — QA Portal PIA{% endblock %}
+{% set role_labels = {
+  'SUPER_ADMIN': 'Super Admin',
+  'CE_QA': 'Shift Incharge',
+  'DCE_QA': 'DCE',
+  'AIRCRAFT_ENGINEER': 'Engineer'
+} %}
+{% block app_content %}
+<h2 class="mb-1"><i class="bi bi-person-circle me-1"></i>My Profile</h2>
+<p class="text-muted mb-4">Your account details and password.</p>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Account Details</h5>
+        <dl class="row mb-0">
+          <dt class="col-5 text-muted">Full Name</dt>
+          <dd class="col-7">{{ user.full_name }}</dd>
+
+          <dt class="col-5 text-muted">Username</dt>
+          <dd class="col-7">{{ user.username }}</dd>
+
+          <dt class="col-5 text-muted">Employee No.</dt>
+          <dd class="col-7">{{ user.employee_no }}</dd>
+
+          <dt class="col-5 text-muted">Role</dt>
+          <dd class="col-7">{{ role_labels.get(user.role, user.role.replace('_', ' ').title()) }}</dd>
+
+          {% if user.designation %}
+          <dt class="col-5 text-muted">Designation</dt>
+          <dd class="col-7">{{ user.designation }}</dd>
+          {% endif %}
+
+          {% if user.station %}
+          <dt class="col-5 text-muted">Station</dt>
+          <dd class="col-7">{{ user.station.code }} — {{ user.station.name }}</dd>
+          {% endif %}
+        </dl>
+        <p class="text-muted small mb-0 mt-3">To update these details, contact a Super Admin.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3"><i class="bi bi-key me-1"></i>Change Password</h5>
+        <form method="post" action="{{ url_for('auth.change_password') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label" for="current_password">Current Password</label>
+            <input class="form-control" type="password" id="current_password" name="current_password" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="new_password">New Password</label>
+            <input class="form-control" type="password" id="new_password" name="new_password" minlength="6" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="confirm_password">Confirm New Password</label>
+            <input class="form-control" type="password" id="confirm_password" name="confirm_password" minlength="6" required>
+          </div>
+          <button class="btn btn-primary" type="submit">Update Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{#
+  Shared dashboard-card macros used by both the main (CE_QA / DCE_QA /
+  AIRCRAFT_ENGINEER) dashboard and the Super Admin dashboard, so every
+  role's cards look and behave the same way. `list_endpoint` is the
+  blueprint-qualified endpoint name (e.g. "main.activities_list" or
+  "admin.activities_list") the cards should link into with the
+  appropriate filter query string.
+#}
+
+{% macro kpi_card(value, label, icon, url=None, sublabel=None, size='lg', col='col-6 col-md-4 col-xl-2') %}
+<div class="{{ col }}">
+  {% if url %}<a href="{{ url }}" class="text-decoration-none text-reset stat-card-link">{% endif %}
+    <div class="card kpi-card {{ 'kpi-card-sm' if size == 'sm' else '' }} h-100">
+      <div class="kpi-card-icon"><i class="bi {{ icon }}"></i></div>
+      <div class="kpi-card-value">{{ value }}</div>
+      <div class="kpi-card-label">{{ label }}</div>
+      {% if sublabel %}<div class="kpi-card-sublabel">{{ sublabel }}</div>{% endif %}
+    </div>
+  {% if url %}</a>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro stat_cards(totals, list_endpoint, size='lg') %}
+<div class="row g-3 mb-4">
+  {{ kpi_card(totals.total, 'Total Activities', 'bi-collection', url_for(list_endpoint), size=size) }}
+  {{ kpi_card(totals.open, 'Open', 'bi-folder2-open', url_for(list_endpoint, status='OPEN'), size=size) }}
+  {{ kpi_card(totals.closed, 'Closed', 'bi-check2-circle', url_for(list_endpoint, status='CLOSED'), size=size) }}
+  {{ kpi_card(totals.today, 'Today', 'bi-calendar-day', url_for(list_endpoint, when='today'), size=size) }}
+  {{ kpi_card(totals.this_month, 'This Month', 'bi-calendar-month', url_for(list_endpoint, when='month'), size=size) }}
+</div>
+{% endmacro %}
+
+{% macro activity_type_cards(by_type, list_endpoint, size='sm', extra_args={}) %}
+<div class="row g-3">
+  {% for code, label, icon, count in by_type %}
+    {{ kpi_card(count, label, icon, url_for(list_endpoint, type=code, **extra_args), size=size, col='col-6 col-md-4 col-xl-2') }}
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+  {% if status == "OPEN" %}
+    <span class="badge badge-status bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="bi bi-folder2-open me-1"></i>Open</span>
+  {% else %}
+    <span class="badge badge-status bg-success-subtle text-success-emphasis border border-success-subtle"><i class="bi bi-check2-circle me-1"></i>Closed</span>
+  {% endif %}
+{% endmacro %}

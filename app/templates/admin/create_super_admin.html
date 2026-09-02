@@ -1,0 +1,42 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'users' %}
+{% block title %}Create Super Admin — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<h2>Create Super Admin</h2>
+<div class="alert alert-danger">
+  This creates another <strong>Super Admin</strong> account with full system access.
+  As a protection against accidental or unauthorized creation, you must confirm
+  it with your own current password.
+</div>
+
+<div class="table-card" style="max-width: 640px;">
+  <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">Full Name</label>
+      <input type="text" class="form-control" name="full_name" value="{{ form.full_name or '' }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input type="text" class="form-control" name="username" value="{{ form.username or '' }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">PNO/CNO</label>
+      <input type="text" class="form-control" name="employee_no" value="{{ form.employee_no or '' }}" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Password</label>
+      <input type="password" class="form-control" name="password" minlength="6" required>
+    </div>
+    <hr>
+    <div class="mb-3">
+      <label class="form-label">Your Current Password (confirmation)</label>
+      <input type="password" class="form-control" name="confirming_password" required>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-danger" type="submit">Create Super Admin</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('admin.users_list') }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

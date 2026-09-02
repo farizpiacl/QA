@@ -1,0 +1,10 @@
+{% extends "main/app_base.html" %}
+{% block title %}{{ station.code }} — QA Portal PIA{% endblock %}
+{% set active_nav = 'my_station' %}
+{% block app_content %}
+<h2>Station: {{ station.name }} ({{ station.code }})</h2>
+<p class="text-muted">Status: {{ "Active" if station.is_active else "Inactive" }}</p>
+<div class="alert alert-info">
+  Station-scoped activity lists will appear here once the Activity module is built. Use the sidebar's Station Activities / Open Activities links in the meantime.
+</div>
+{% endblock %}

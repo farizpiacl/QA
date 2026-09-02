@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}500 Server Error — QA Portal PIA{% endblock %}
+{% block content %}
+<div class="error-shell">
+  <div class="col-11 col-md-6 mx-auto">
+    <i class="bi bi-tools text-danger" style="font-size: 2.5rem;"></i>
+    <div class="error-code">500</div>
+    <h4 class="mb-3">Something Went Wrong</h4>
+    <p class="text-muted">
+      An unexpected error occurred while processing your request. The issue
+      has been logged. Please try again, and contact your administrator if
+      the problem continues.
+    </p>
+    <a class="btn btn-primary mt-2" href="{{ url_for('main.dashboard') }}"><i class="bi bi-house me-1"></i>Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

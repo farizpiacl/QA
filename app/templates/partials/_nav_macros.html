@@ -1,0 +1,20 @@
+{#
+  Shared sidebar-navigation macros used by every role's shell
+  (main/app_base.html for CE_QA / DCE_QA / AIRCRAFT_ENGINEER and
+  admin/base_admin.html for SUPER_ADMIN) so the markup, icons, and
+  active-state logic live in exactly one place instead of being
+  duplicated per role.
+#}
+
+{% macro nav_section(title) %}
+<div class="sidebar-section-title">{{ title }}</div>
+{% endmacro %}
+
+{% macro nav_link(url, icon, label, key, active_nav) %}
+<a href="{{ url }}"
+   class="sidebar-link {{ 'active' if active_nav == key else '' }}"
+   {% if active_nav == key %}aria-current="page"{% endif %}>
+  <i class="bi {{ icon }}"></i>
+  <span>{{ label }}</span>
+</a>
+{% endmacro %}

@@ -1,0 +1,137 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} Spot Checks — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} Spot Checks</h2>
+<p class="text-muted">Activity Type 2 — Spot Checks.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="spotCheckForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="spot_check_type">Spot Checks Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.spot_check_type }}" id="spot_check_type" name="spot_check_type" required>
+          <option value="" disabled {{ 'selected' if not form_values.spot_check_type }}>Select type…</option>
+          {% for code, label in type_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.spot_check_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.spot_check_type %}<div class="invalid-feedback">{{ errors.spot_check_type }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4" id="areaField">
+        <label class="form-label" for="area">Area <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.area }}" id="area" name="area">
+          <option value="" disabled {{ 'selected' if not form_values.area }}>Select area…</option>
+          {% for code, label in area_choices %}
+          <option value="{{ code }}" data-needs-aircraft="{{ '1' if code in aircraft_areas else '0' }}" {{ 'selected' if form_values.area == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.area %}<div class="invalid-feedback">{{ errors.area }}</div>{% endif %}
+        <div class="form-text">Only shown for the "Spot Checks Areas" type.</div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1" id="aircraftFields">
+      <div class="col-md-4">
+        <label class="form-label" for="airline_id">Airline <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.airline_id }}" id="airline_id" name="airline_id">
+          <option value="" disabled {{ 'selected' if not form_values.airline_id }}>Select airline…</option>
+          {% for airline in airlines %}
+          <option value="{{ airline.id }}" {{ 'selected' if form_values.airline_id|string == airline.id|string }}>{{ airline.code }} — {{ airline.name }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.airline_id %}<div class="invalid-feedback">{{ errors.airline_id }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="aircraft_id">Aircraft Registration <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.aircraft_id }}" id="aircraft_id" name="aircraft_id">
+          <option value="" disabled {{ 'selected' if not form_values.aircraft_id }}>Select registration…</option>
+          {% for ac in aircraft_list %}
+          <option value="{{ ac.id }}" {{ 'selected' if form_values.aircraft_id|string == ac.id|string }}>{{ ac.registration }}{% if ac.type %} ({{ ac.type }}){% endif %}</option>
+          {% endfor %}
+        </select>
+        {% if errors.aircraft_id %}<div class="invalid-feedback">{{ errors.aircraft_id }}</div>{% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="flight_number">Flight No. <span class="text-danger">*</span></label>
+        <input type="text" class="form-control {{ 'is-invalid' if errors.flight_number }}" id="flight_number" name="flight_number" value="{{ form_values.flight_number }}">
+        {% if errors.flight_number %}<div class="invalid-feedback">{{ errors.flight_number }}</div>{% endif %}
+      </div>
+      <div class="form-text">Required for the 5 aircraft-related areas, and for PCAA.</div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      {{ cf.yesno_field('email_done', 'email_done', 'Email Done', form_values.email_done, errors) }}
+      {{ cf.yesno_field('qa_db_update_done', 'qa_db_update_done', 'QA Database Update Done', form_values.qa_db_update_done, errors) }}
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var typeSelect = document.getElementById("spot_check_type");
+  var areaField = document.getElementById("areaField");
+  var areaSelect = document.getElementById("area");
+  var aircraftFields = document.getElementById("aircraftFields");
+  var AREAS_TYPE = "AREAS";
+  var PCAA_TYPE = "PCAA";
+
+  function aircraftNeeded() {
+    if (!typeSelect.value) return false;
+    if (typeSelect.value === PCAA_TYPE) return true;
+    if (typeSelect.value === AREAS_TYPE) {
+      var opt = areaSelect.options[areaSelect.selectedIndex];
+      return !!(opt && opt.getAttribute("data-needs-aircraft") === "1");
+    }
+    return false;
+  }
+
+  function toggle(el, show) {
+    el.classList.toggle("d-none", !show);
+    el.querySelectorAll("input, select").forEach(function (i) {
+      if (show) { i.removeAttribute("disabled"); } else { i.setAttribute("disabled", "disabled"); }
+    });
+  }
+
+  function refresh() {
+    var showArea = typeSelect.value === AREAS_TYPE;
+    toggle(areaField, showArea);
+    if (showArea) { areaSelect.setAttribute("required", "required"); } else { areaSelect.removeAttribute("required"); areaSelect.value = ""; }
+
+    var showAircraft = aircraftNeeded();
+    toggle(aircraftFields, showAircraft);
+    ["airline_id", "aircraft_id", "flight_number"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (showAircraft) { el.setAttribute("required", "required"); } else { el.removeAttribute("required"); }
+    });
+  }
+
+  typeSelect.addEventListener("change", refresh);
+  areaSelect.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}

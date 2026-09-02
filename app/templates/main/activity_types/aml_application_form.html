@@ -1,0 +1,65 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} AML Application — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} AML Application</h2>
+<p class="text-muted">Activity Type 8 — AML Application.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="amlApplicationForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="aml_type">Type <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.aml_type }}" id="aml_type" name="aml_type" required>
+          <option value="" disabled {{ 'selected' if not form_values.aml_type }}>Select…</option>
+          {% for code, label in type_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.aml_type == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.aml_type %}<div class="invalid-feedback">{{ errors.aml_type }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="screening">Screening <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.screening }}" id="screening" name="screening" required>
+          <option value="" disabled {{ 'selected' if not form_values.screening }}>Select…</option>
+          {% for code, label in screening_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.screening == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.screening %}<div class="invalid-feedback">{{ errors.screening }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="outcome">Outcome <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.outcome }}" id="outcome" name="outcome" required>
+          <option value="" disabled {{ 'selected' if not form_values.outcome }}>Select…</option>
+          {% for code, label in outcome_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.outcome == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.outcome %}<div class="invalid-feedback">{{ errors.outcome }}</div>{% endif %}
+      </div>
+
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

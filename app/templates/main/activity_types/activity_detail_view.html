@@ -1,0 +1,150 @@
+{% extends "main/app_base.html" %}
+{% import "partials/_dashboard_macros.html" as dm %}
+{% set active_nav = 'activities' %}
+{% block title %}Activity #{{ activity.id }} — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2 class="mb-0">{{ type_label }} — #{{ activity.id }}</h2>
+  <div class="d-flex gap-2">
+    {% if can_edit %}
+    <a href="{{ url_for('act.edit_activity', activity_id=activity.id) }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil me-1" aria-hidden="true"></i>✏️ Edit
+    </a>
+    {% endif %}
+    {% if can_delete %}
+    <form method="post" action="{{ url_for('act.delete_activity', activity_id=activity.id) }}"
+          class="d-inline" onsubmit="return confirm('Delete this activity permanently? This cannot be undone.');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>🗑️ Delete
+      </button>
+    </form>
+    {% endif %}
+    <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary btn-sm">Back to list</a>
+  </div>
+</div>
+
+<div class="card p-3 p-md-4 mb-3">
+  <h5 class="mb-3">Common Details</h5>
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Date</dt><dd class="col-sm-9">{{ activity.activity_date.strftime('%Y-%m-%d') }}</dd>
+    <dt class="col-sm-3">Shift</dt><dd class="col-sm-9">{{ activity.shift.name if activity.shift else '—' }}</dd>
+    <dt class="col-sm-3">Station</dt><dd class="col-sm-9">{{ activity.station.code }} — {{ activity.station.name }}</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ dm.status_badge(activity.status) }}</dd>
+    <dt class="col-sm-3">Created By</dt><dd class="col-sm-9">{{ activity.creator.full_name if activity.creator else '—' }}</dd>
+    <dt class="col-sm-3">Remarks</dt><dd class="col-sm-9">{{ activity.remarks or '—' }}</dd>
+  </dl>
+</div>
+
+<div class="card p-3 p-md-4">
+  <h5 class="mb-3">{{ type_label }} Details</h5>
+
+  {% if activity.activity_type == 'RAMP_INSPECTION' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+    <dt class="col-sm-3">Airline</dt><dd class="col-sm-9">{{ detail.airline.code }} — {{ detail.airline.name }}</dd>
+    <dt class="col-sm-3">Aircraft Registration</dt><dd class="col-sm-9">{{ detail.aircraft.registration }}</dd>
+    <dt class="col-sm-3">Flight No.</dt><dd class="col-sm-9">{{ detail.flight_number }}</dd>
+    <dt class="col-sm-3">Email Done</dt><dd class="col-sm-9">{{ 'Yes' if detail.email_done else 'No' }}</dd>
+    <dt class="col-sm-3">QA Database Update Done</dt><dd class="col-sm-9">{{ 'Yes' if detail.qa_db_update_done else 'No' }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'SPOT_CHECKS' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Spot Checks Type</dt><dd class="col-sm-9">{{ detail_labels.spot_check_type }}</dd>
+    {% if detail.area %}<dt class="col-sm-3">Area</dt><dd class="col-sm-9">{{ detail_labels.area }}</dd>{% endif %}
+    {% if detail.airline_id %}
+    <dt class="col-sm-3">Airline</dt><dd class="col-sm-9">{{ detail.airline.code }} — {{ detail.airline.name }}</dd>
+    <dt class="col-sm-3">Aircraft Registration</dt><dd class="col-sm-9">{{ detail.aircraft.registration }}</dd>
+    <dt class="col-sm-3">Flight No.</dt><dd class="col-sm-9">{{ detail.flight_number }}</dd>
+    {% endif %}
+    <dt class="col-sm-3">Email Done</dt><dd class="col-sm-9">{{ 'Yes' if detail.email_done else 'No' }}</dd>
+    <dt class="col-sm-3">QA Database Update Done</dt><dd class="col-sm-9">{{ 'Yes' if detail.qa_db_update_done else 'No' }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'AUDIT' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Audit Type</dt><dd class="col-sm-9">{{ detail_labels.audit_type }}</dd>
+    <dt class="col-sm-3">Section/Station</dt><dd class="col-sm-9">{{ detail_labels.section }}</dd>
+    {% if detail.section == 'EXTERNAL' %}
+    <dt class="col-sm-3">Authority</dt><dd class="col-sm-9">{{ detail.authority }}</dd>
+    <dt class="col-sm-3">Authority Operator</dt><dd class="col-sm-9">{{ detail.operator }}</dd>
+    {% endif %}
+  </dl>
+  <hr>
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Audit Stage</dt><dd class="col-sm-9">{{ detail_labels.audit_stage }}</dd>
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ dm.status_badge(detail.stage_status) }}</dd>
+    <dt class="col-sm-3">Remarks</dt><dd class="col-sm-9">{{ detail.stage_remarks or 'No remarks.' }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'OCCURRENCE_REPORTING' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Occurrence Report Type</dt><dd class="col-sm-9">{{ detail_labels.report_type }}</dd>
+    <dt class="col-sm-3">Occurrence</dt><dd class="col-sm-9">{{ detail_labels.category }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'TRAINING' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Conduct / Attend</dt><dd class="col-sm-9">{{ detail_labels.mode }}</dd>
+    <dt class="col-sm-3">Training</dt><dd class="col-sm-9">{{ detail_labels.kind }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'COMPETENCE_ASSESSMENT' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Type</dt><dd class="col-sm-9">{{ detail_labels.personnel_type }}</dd>
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">{{ detail.name }}</dd>
+    <dt class="col-sm-3">PNO/CNO</dt><dd class="col-sm-9">{{ detail.pno_cno }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'CERTIFICATE_AUTHORIZATION' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'AML_APPLICATION' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Type</dt><dd class="col-sm-9">{{ detail_labels.aml_type }}</dd>
+    <dt class="col-sm-3">Screening</dt><dd class="col-sm-9">{{ detail_labels.screening }}</dd>
+    <dt class="col-sm-3">Outcome</dt><dd class="col-sm-9">{{ detail_labels.outcome }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'MAINTENANCE_EXPERIENCE' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">{{ detail.name }}</dd>
+    <dt class="col-sm-3">PNO/CNO</dt><dd class="col-sm-9">{{ detail.pno_cno }}</dd>
+    <dt class="col-sm-3">Action</dt><dd class="col-sm-9">{{ detail_labels.action }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'INVESTIGATION' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Type</dt><dd class="col-sm-9">{{ detail_labels.investigation_type }}</dd>
+    {% if detail.mor_aircraft_type %}
+    <dt class="col-sm-3">Aircraft Type</dt><dd class="col-sm-9">{{ detail_labels.mor_aircraft_type }}</dd>
+    {% endif %}
+  </dl>
+
+  {% elif activity.activity_type == 'PCAA' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'SURVEILLANCE' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'SMS' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+  </dl>
+
+  {% elif activity.activity_type == 'OFFICE_ACTIVITY' %}
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Option</dt><dd class="col-sm-9">{{ detail_labels.option }}</dd>
+  </dl>
+  {% endif %}
+</div>
+{% endblock %}

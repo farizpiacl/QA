@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Login — Quality Assurance Portal — PIA{% endblock %}
+{% block content %}
+<div class="auth-shell">
+  <div class="auth-shell-bg" aria-hidden="true">
+    <span class="auth-orbit auth-orbit-1"></span>
+    <span class="auth-orbit auth-orbit-2"></span>
+  </div>
+
+  <div class="col-11 col-sm-9 col-md-6 col-lg-5 col-xl-4">
+    <div class="card auth-card">
+      <div class="auth-banner">
+        <span class="auth-logo"><img src="{{ url_for('static', filename='img/pia_logo.png') }}" alt="Pakistan International Airlines"></span>
+        <h1 class="auth-title">Quality Assurance Portal</h1>
+        <p class="auth-subtitle">Pakistan International Airlines (PIA)</p>
+        <span class="auth-badge"><i class="bi bi-patch-check-fill" aria-hidden="true"></i>PIA Engineering &amp; Maintenance</span>
+      </div>
+
+      <div class="card-body auth-body">
+        <div class="auth-heading">
+          <h2>Sign in to your account</h2>
+          <p>Enter your credentials to access the QA Portal.</p>
+        </div>
+
+        <form method="post" id="loginForm" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="auth-field mb-3">
+            <label class="form-label" for="username">Employee ID</label>
+            <div class="auth-input-group">
+              <span class="auth-input-icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+              <input
+                class="form-control auth-input"
+                type="text"
+                id="username"
+                name="username"
+                required
+                autofocus
+                autocomplete="username"
+                placeholder="e.g.62123"
+                aria-describedby="usernameError">
+            </div>
+            <div class="auth-field-error" id="usernameError" role="alert">Please enter your username or email.</div>
+          </div>
+
+          <div class="auth-field mb-2">
+            <label class="form-label" for="password">Password</label>
+            <div class="auth-input-group">
+              <span class="auth-input-icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></span>
+              <input
+                class="form-control auth-input"
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                aria-describedby="passwordError">
+              <button
+                class="auth-input-toggle"
+                type="button"
+                id="togglePassword"
+                aria-label="Show password"
+                aria-pressed="false">
+                <i class="bi bi-eye" id="togglePasswordIcon" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="auth-field-error" id="passwordError" role="alert">Please enter your password.</div>
+          </div>
+
+          <div class="auth-row mb-4">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember" name="remember">
+              <label class="form-check-label" for="remember">Keep me signed in</label>
+            </div>
+          </div>
+
+          <button class="btn btn-primary auth-submit w-100" type="submit" id="loginSubmit">
+            <span class="auth-submit-label">
+              <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i>Sign In
+            </span>
+            <span class="auth-submit-spinner" aria-hidden="true">
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              Signing in…
+            </span>
+          </button>
+        </form>
+
+        <div class="auth-footnote">
+          <i class="bi bi-lock-fill" aria-hidden="true"></i>
+          Access is restricted to authorized PIA Engineering &amp; Quality Assurance personnel.
+        </div>
+      </div>
+    </div>
+
+    <p class="auth-credit">Developed by Intern Muhammad Fariz &middot; PIA Engineering &amp; Maintenance — 2026</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    "use strict";
+
+    var form = document.getElementById("loginForm");
+    var usernameInput = document.getElementById("username");
+    var passwordInput = document.getElementById("password");
+    var submitBtn = document.getElementById("loginSubmit");
+    var toggleBtn = document.getElementById("togglePassword");
+    var toggleIcon = document.getElementById("togglePasswordIcon");
+
+    // Show / hide password
+    if (toggleBtn && passwordInput && toggleIcon) {
+      toggleBtn.addEventListener("click", function () {
+        var isHidden = passwordInput.type === "password";
+        passwordInput.type = isHidden ? "text" : "password";
+        toggleBtn.setAttribute("aria-pressed", String(isHidden));
+        toggleBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+        toggleIcon.classList.toggle("bi-eye", !isHidden);
+        toggleIcon.classList.toggle("bi-eye-slash", isHidden);
+      });
+    }
+
+    // Friendly inline validation + loading state (server remains the source
+    // of truth for actual authentication - this only improves the UX around
+    // the existing POST to /auth/login; nothing about the auth flow itself
+    // changes).
+    function markInvalid(input) {
+      input.closest(".auth-field").classList.add("is-invalid");
+    }
+    function clearInvalid(input) {
+      input.closest(".auth-field").classList.remove("is-invalid");
+    }
+
+    [usernameInput, passwordInput].forEach(function (input) {
+      if (!input) return;
+      input.addEventListener("input", function () {
+        if (input.value.trim()) clearInvalid(input);
+      });
+    });
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        var valid = true;
+        if (!usernameInput.value.trim()) { markInvalid(usernameInput); valid = false; }
+        if (!passwordInput.value) { markInvalid(passwordInput); valid = false; }
+
+        if (!valid) {
+          e.preventDefault();
+          return;
+        }
+
+        form.classList.add("auth-loading");
+        submitBtn.disabled = true;
+      });
+    }
+  })();
+</script>
+{% endblock %}

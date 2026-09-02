@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+{% set active_nav = 'users' %}
+{% block title %}Users — QA Portal PIA{% endblock %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Users</h2>
+  <div>
+    <a href="{{ url_for('admin.create_super_admin') }}" class="btn btn-outline-danger btn-sm me-2">+ Super Admin</a>
+    <a href="{{ url_for('admin.user_create') }}" class="btn btn-primary btn-sm">+ New User</a>
+  </div>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-4">
+    <input type="text" class="form-control" name="q" placeholder="Search name, username, PNO/CNO" value="{{ q }}">
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="role">
+      <option value="">All roles</option>
+      {% for r in roles %}
+      <option value="{{ r }}" {{ 'selected' if role_filter == r }}>{{ r }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select class="form-select" name="status">
+      <option value="">All statuses</option>
+      <option value="active" {{ 'selected' if status_filter == 'active' }}>Active</option>
+      <option value="inactive" {{ 'selected' if status_filter == 'inactive' }}>Inactive</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-secondary w-100" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="table-card">
+  <table class="table table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th>Full Name</th><th>Username</th><th>PNO/CNO</th><th>Designation</th>
+        <th>Role</th><th>Station</th><th>Status</th><th class="text-end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.full_name|mask_super_admin_label }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.employee_no }}</td>
+        <td>{{ (u.designation or '—')|mask_super_admin_label }}</td>
+        <td><span class="badge bg-info-subtle text-info-emphasis badge-role">{{ u.role }}</span></td>
+        <td>{{ u.station.code if u.station else '—' }}</td>
+        <td>
+          {% if u.is_active %}
+          <span class="badge bg-success">Active</span>
+          {% else %}
+          <span class="badge bg-secondary">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="text-end text-nowrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">Edit</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.user_reset_password', user_id=u.id) }}">Reset PW</a>
+          {% if u.is_active %}
+          <form class="d-inline" method="post" action="{{ url_for('admin.user_deactivate', user_id=u.id) }}"
+                onsubmit="return confirm('Deactivate {{ u.username }}?');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-warning" type="submit">Deactivate</button>
+          </form>
+          {% else %}
+          <form class="d-inline" method="post" action="{{ url_for('admin.user_activate', user_id=u.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-sm btn-outline-success" type="submit">Activate</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-muted">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

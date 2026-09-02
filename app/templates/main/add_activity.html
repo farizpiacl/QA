@@ -1,0 +1,166 @@
+{% extends "main/app_base.html" %}
+{% set active_nav = 'add_activity' %}
+{% block title %}Add Activity — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">Add Activity</h2>
+<p class="text-muted">
+  Pick an Activity Type to begin — the form below adjusts to show only the
+  fields that apply. Fields marked <span class="text-danger">*</span> are required.
+</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">
+    {% for field, message in errors.items() %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" id="addActivityForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <!-- Step 1: Activity Type selector -->
+  <div class="row g-3 mb-4" id="activityTypeCards">
+    {% for code, label, icon in activity_types %}
+    <div class="col-6 col-md-4 col-xl-3">
+      {% if code in specialized_create_urls %}
+      <a href="{{ specialized_create_urls[code] }}" class="text-decoration-none text-reset">
+        <div class="card activity-type-card p-3 h-100 text-center">
+          <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi {{ icon }}"></i></span></div>
+          <div class="small fw-semibold">{{ label }}</div>
+        </div>
+      </a>
+      {% else %}
+      <div class="card activity-type-card p-3 h-100 text-center activity-type-select {{ 'border-primary' if form_values.activity_type == code }}"
+           data-type-code="{{ code }}" role="button" tabindex="0">
+        <div class="mb-2"><span class="activity-type-icon mx-auto"><i class="bi {{ icon }}"></i></span></div>
+        <div class="small fw-semibold">{{ label }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <input type="hidden" name="activity_type" id="activityTypeInput" value="{{ form_values.activity_type }}">
+  {% if errors.activity_type %}<div class="text-danger small mb-3">{{ errors.activity_type }}</div>{% endif %}
+
+  <!-- Step 2: common fields + dynamic type-specific fields (hidden until a type is picked) -->
+  <div id="activityDetailsSection" class="card p-3 p-md-4 {{ '' if form_values.activity_type else 'd-none' }}">
+    <h5 class="mb-3" id="selectedTypeHeading">
+      {{ activity_types|selectattr('0', 'equalto', form_values.activity_type)|map(attribute=1)|first or '' }}
+    </h5>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label" for="activity_date">Date <span class="text-danger">*</span></label>
+        <input type="date" class="form-control {{ 'is-invalid' if errors.activity_date }}" id="activity_date"
+               name="activity_date" value="{{ form_values.activity_date }}" required>
+        {% if errors.activity_date %}<div class="invalid-feedback">{{ errors.activity_date }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="shift_id">Shift <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.shift_id }}" id="shift_id" name="shift_id" required>
+          <option value="" disabled {{ 'selected' if not form_values.shift_id }}>Select shift…</option>
+          {% for shift in shifts %}
+          <option value="{{ shift.id }}" {{ 'selected' if form_values.shift_id|string == shift.id|string }}>
+            {{ shift.name }}{% if shift.start_time and shift.end_time %} ({{ shift.start_time.strftime('%H:%M') }}–{{ shift.end_time.strftime('%H:%M') }}){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        {% if errors.shift_id %}<div class="invalid-feedback">{{ errors.shift_id }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="station_id">Station <span class="text-danger">*</span></label>
+        {% if station_locked %}
+          {% set locked_station = stations[0] if stations else None %}
+          <input type="text" class="form-control" value="{{ locked_station.code + ' — ' + locked_station.name if locked_station else 'No station assigned' }}" disabled readonly>
+          <input type="hidden" name="station_id" value="{{ locked_station.id if locked_station else '' }}">
+        {% else %}
+          <select class="form-select {{ 'is-invalid' if errors.station_id }}" id="station_id" name="station_id" required>
+            <option value="" disabled {{ 'selected' if not form_values.station_id }}>Select station…</option>
+            {% for station in stations %}
+            <option value="{{ station.id }}" {{ 'selected' if form_values.station_id|string == station.id|string }}>
+              {{ station.code }} — {{ station.name }}
+            </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+        {% if errors.station_id %}<div class="invalid-feedback d-block">{{ errors.station_id }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Created By</label>
+        <input type="text" class="form-control" value="{{ current_user.full_name }}" disabled readonly>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="status">Status <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.status }}" id="status" name="status" required>
+          {% for s in statuses %}
+          <option value="{{ s }}" {{ 'selected' if form_values.status == s }}>{{ s.title() }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.status %}<div class="invalid-feedback">{{ errors.status }}</div>{% endif %}
+      </div>
+
+      <!-- Type-specific fields render here, generically, per selected Activity Type.
+           Empty for every type in Module 5 — Modules 6-8 populate
+           type_field_specs via the activity_registry and these render
+           automatically with no template changes. -->
+      <div id="activityTypeFields" class="col-12">
+        {% for code, fields in type_field_specs.items() %}
+        <div class="row g-3 activity-type-fieldset d-none" data-type-code="{{ code }}">
+          {% for f in fields %}
+          <div class="col-md-6">
+            <label class="form-label" for="field_{{ f.name }}">
+              {{ f.label }}{% if f.required %} <span class="text-danger">*</span>{% endif %}
+            </label>
+            {% if f.field_type == 'textarea' %}
+              <textarea class="form-control" id="field_{{ f.name }}" name="{{ f.name }}"
+                        {{ 'required' if f.required }} rows="3"></textarea>
+            {% elif f.field_type == 'select' %}
+              <select class="form-select" id="field_{{ f.name }}" name="{{ f.name }}" {{ 'required' if f.required }}>
+                <option value="" disabled selected>Select…</option>
+                {% for value, label in f.choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            {% elif f.field_type == 'checkbox' %}
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="field_{{ f.name }}" name="{{ f.name }}">
+              </div>
+            {% else %}
+              <input type="{{ 'number' if f.field_type == 'number' else ('date' if f.field_type == 'date' else 'text') }}"
+                     class="form-control" id="field_{{ f.name }}" name="{{ f.name }}" {{ 'required' if f.required }}>
+            {% endif %}
+            {% if f.help_text %}<div class="form-text">{{ f.help_text }}</div>{% endif %}
+            {% if errors[f.name] %}<div class="text-danger small">{{ errors[f.name] }}</div>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="remarks">Remarks</label>
+        <textarea class="form-control {{ 'is-invalid' if errors.remarks }}" id="remarks" name="remarks" rows="3">{{ form_values.remarks }}</textarea>
+        {% if errors.remarks %}<div class="invalid-feedback">{{ errors.remarks }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save Activity</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/activity_form.js') }}"></script>
+{% endblock %}

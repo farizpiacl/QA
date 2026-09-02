@@ -1,0 +1,25 @@
+{% extends "main/app_base.html" %}
+{% block title %}Stations — QA Portal PIA{% endblock %}
+{% block app_content %}
+<h2>Stations</h2>
+<p class="text-muted">Pakistan-wide station listing — visible to SUPER_ADMIN and CE_QA.</p>
+<div class="table-card">
+  <table class="table table-striped mb-0">
+    <thead>
+      <tr><th>Code</th><th>Name</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for station in stations %}
+      <tr>
+        <td>{{ station.code }}</td>
+        <td>{{ station.name }}</td>
+        <td>{{ "Active" if station.is_active else "Inactive" }}</td>
+        <td><a href="{{ url_for('main.station_detail', station_id=station.id) }}">View</a></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="text-muted">No stations yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

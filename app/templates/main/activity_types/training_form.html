@@ -1,0 +1,79 @@
+{% extends "main/app_base.html" %}
+{% import "main/activity_types/_common_fields.html" as cf %}
+{% set active_nav = 'add_activity' %}
+{% block title %}{{ 'Edit' if activity else 'Add' }} Training — QA Portal PIA{% endblock %}
+
+{% block app_content %}
+<h2 class="mb-1">{{ 'Edit' if activity else 'Add' }} Training</h2>
+<p class="text-muted">Activity Type 5 — Training.</p>
+
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  <strong>Please fix the following before saving:</strong>
+  <ul class="mb-0 mt-1">{% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form method="post" id="trainingForm" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card p-3 p-md-4">
+    {{ cf.common_fields(shifts, stations, station_locked, statuses, form_values, errors, current_user) }}
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-4">
+        <label class="form-label" for="mode">Conduct / Attend <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.mode }}" id="mode" name="mode" required>
+          <option value="" disabled {{ 'selected' if not form_values.mode }}>Select…</option>
+          {% for code, label in mode_choices %}
+          <option value="{{ code }}" {{ 'selected' if form_values.mode == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.mode %}<div class="invalid-feedback">{{ errors.mode }}</div>{% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="kind">Training <span class="text-danger">*</span></label>
+        <select class="form-select {{ 'is-invalid' if errors.kind }}" id="kind" name="kind" required>
+          <option value="" disabled {{ 'selected' if not form_values.kind }}>Select…</option>
+          {% for code, label in kind_choices %}
+          <option value="{{ code }}" data-conduct-allowed="{{ '1' if code in conduct_allowed else '0' }}" {{ 'selected' if form_values.kind == code }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.kind %}<div class="invalid-feedback">{{ errors.kind }}</div>{% endif %}
+        <div class="form-text">"Types" is only available under Attend.</div>
+      </div>
+
+      {{ cf.remarks_field(form_values, errors) }}
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Save</button>
+      <a href="{{ url_for('main.activities_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  var modeSelect = document.getElementById("mode");
+  var kindSelect = document.getElementById("kind");
+
+  function refresh() {
+    var isConduct = modeSelect.value === "CONDUCT";
+    Array.prototype.forEach.call(kindSelect.options, function (opt) {
+      if (!opt.value) return;
+      var allowed = !isConduct || opt.getAttribute("data-conduct-allowed") === "1";
+      opt.hidden = !allowed;
+      opt.disabled = !allowed;
+      if (!allowed && opt.selected) { kindSelect.value = ""; }
+    });
+  }
+
+  modeSelect.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}
